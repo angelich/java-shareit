@@ -59,10 +59,10 @@ public class UserService {
     }
 
     private void checkEmailAlreadyExist(User user) {
-       boolean isEmailAlreadyExist = userRepository.getAllUsers().stream()
+        boolean isEmailAlreadyExist = userRepository.getAllUsers().stream()
                 .anyMatch(u -> u.getEmail().equals(user.getEmail()) && !Objects.equals(u.getId(), user.getId()));
-       if (isEmailAlreadyExist){
-           throw new IllegalStateException("Email is already exists");
-       }
+        if (isEmailAlreadyExist) {
+            throw new IllegalStateException("Email is already exists");
+        }
     }
 }

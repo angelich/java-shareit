@@ -83,7 +83,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemDto> findItem(Long userId, String text) {
         checkUserExist(userId);
-        if (text.isEmpty()){
+        if (text.isEmpty()) {
             return Collections.emptyList();
         }
         return itemRepository.findItem(text)

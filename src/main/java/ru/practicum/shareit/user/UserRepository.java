@@ -35,7 +35,7 @@ public class UserRepository {
 
     public User update(Long id, User user) {
         User updatedUser = users.get(id);
-        if (user.getEmail() != null){
+        if (user.getEmail() != null) {
             updatedUser.setEmail(user.getEmail());
         }
         if (user.getName() != null) {
