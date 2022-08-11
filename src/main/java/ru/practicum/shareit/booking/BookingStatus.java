@@ -1,6 +1,9 @@
 package ru.practicum.shareit.booking;
 
 
+/**
+ * Статусы бронирования
+ */
 public enum BookingStatus {
 
     /**

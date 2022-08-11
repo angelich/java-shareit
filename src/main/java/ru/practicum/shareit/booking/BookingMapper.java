@@ -2,12 +2,6 @@ package ru.practicum.shareit.booking;
 
 import ru.practicum.shareit.booking.dto.BookingDto;
 
-/**
- *
- *
- * @author angelich:
- * @since 10.08.2022
- */
 public final class BookingMapper {
     private BookingMapper() {
     }

@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.shareit.requests.ItemRequest;
-import ru.practicum.shareit.user.model.User;
 
 @Getter
 @Setter
@@ -18,7 +17,6 @@ public class ItemDto {
     private Long id;
     private String name;
     private String description;
-    private boolean available;
-    private  User owner;
+    private Boolean available;
     private ItemRequest request;
 }

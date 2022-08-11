@@ -8,14 +8,11 @@ import java.util.HashMap;
 
 /**
  * Хранилище пользователей
- *
- * @author angeilch:
- * @since 10.08.2022
  */
 @Repository
-public class UserDao {
+public class UserRepository {
     private static Long counter = 0L;
-    private HashMap<Long, User> users = new HashMap<>();
+    private final HashMap<Long, User> users = new HashMap<>();
 
     public Collection<User> getAllUsers() {
         return users.values();
