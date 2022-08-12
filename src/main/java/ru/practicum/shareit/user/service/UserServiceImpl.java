@@ -1,6 +1,8 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.user.UserMapper;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
@@ -17,11 +19,11 @@ import static ru.practicum.shareit.user.UserMapper.toUserDto;
  * Сервис по работе с пользователями
  */
 @Service
-public class UserService {
+public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private static final Pattern EMAIL_PATTERN = compile("^(.+)@(\\S+)$");
 
-    public UserService(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -32,6 +34,7 @@ public class UserService {
         }
     }
 
+    @Override
     public Collection<UserDto> getAllUsers() {
         return userRepository.getAllUsers()
                 .stream()
@@ -39,6 +42,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public UserDto createUser(UserDto user) {
         String userEmail = user.getEmail();
         if (userEmail == null) {
@@ -50,14 +54,17 @@ public class UserService {
         return toUserDto(createdUser);
     }
 
+    @Override
     public UserDto getUser(Long id) {
         return toUserDto(userRepository.getUser(id));
     }
 
+    @Override
     public void deleteUser(Long id) {
         userRepository.deleteUser(id);
     }
 
+    @Override
     public UserDto updateUser(Long id, UserDto user) {
         if (user.getEmail() != null) {
             checkEmailValid(user);
