@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.user.UserMapper;
 import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
@@ -9,11 +8,9 @@ import ru.practicum.shareit.user.model.User;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.util.regex.Pattern.compile;
 import static ru.practicum.shareit.user.UserMapper.toUser;
-import static ru.practicum.shareit.user.UserMapper.toUserDto;
 
 /**
  * Сервис по работе с пользователями
@@ -35,28 +32,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Collection<UserDto> getAllUsers() {
-        return userRepository.getAllUsers()
-                .stream()
-                .map(UserMapper::toUserDto)
-                .collect(Collectors.toList());
+    public Collection<User> getAllUsers() {
+        return userRepository.getAllUsers();
     }
 
     @Override
-    public UserDto createUser(UserDto user) {
+    public User createUser(UserDto user) {
         String userEmail = user.getEmail();
         if (userEmail == null) {
             throw new IllegalArgumentException("Email should be provided");
         }
         checkEmailValid(user);
         checkEmailAlreadyExist(user);
-        User createdUser = userRepository.createUser(toUser(user));
-        return toUserDto(createdUser);
+        return userRepository.createUser(toUser(user));
     }
 
     @Override
-    public UserDto getUser(Long id) {
-        return toUserDto(userRepository.getUser(id));
+    public User getUser(Long id) {
+        return userRepository.getUser(id);
     }
 
     @Override
@@ -65,13 +58,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(Long id, UserDto user) {
+    public User updateUser(Long id, UserDto user) {
         if (user.getEmail() != null) {
             checkEmailValid(user);
             checkEmailAlreadyExist(user);
         }
-        User updatedUser = userRepository.update(id, toUser(user));
-        return toUserDto(updatedUser);
+        return userRepository.update(id, toUser(user));
     }
 
     private void checkEmailAlreadyExist(UserDto user) {
