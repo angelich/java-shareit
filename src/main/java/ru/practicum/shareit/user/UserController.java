@@ -13,9 +13,6 @@ import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.stream.Collectors;
-
-import static ru.practicum.shareit.user.UserMapper.toUserDto;
 
 /**
  * Контроллер пользователей
@@ -31,25 +28,22 @@ public class UserController {
 
     @GetMapping
     Collection<UserDto> getAllUsers() {
-        return userService.getAllUsers()
-                .stream()
-                .map(UserMapper::toUserDto)
-                .collect(Collectors.toList());
+        return userService.getAllUsers();
     }
 
     @PostMapping
     UserDto createUser(@Valid @RequestBody UserDto user) {
-        return toUserDto(userService.createUser(user));
+        return userService.createUser(user);
     }
 
     @GetMapping(path = "/{id}")
     UserDto getUser(@PathVariable Long id) {
-        return toUserDto(userService.getUser(id));
+        return userService.getUser(id);
     }
 
     @PatchMapping(path = "/{id}")
     UserDto updateUser(@Valid @RequestBody UserDto user, @PathVariable Long id) {
-        return toUserDto(userService.updateUser(id, user));
+        return userService.updateUser(id, user);
     }
 
     @DeleteMapping(path = "/{id}")

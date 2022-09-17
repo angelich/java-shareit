@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.service;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.item.ItemMapper;
 import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
@@ -9,8 +10,9 @@ import ru.practicum.shareit.user.UserRepository;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.item.ItemMapper.toItem;
+import static ru.practicum.shareit.item.ItemMapper.toItemDto;
 
 /**
  * Сервис по работе с вещами
@@ -26,7 +28,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Item createItem(Long userId, ItemDto itemDto) {
+    public ItemDto createItem(Long userId, ItemDto itemDto) {
         if (itemDto.getAvailable() == null) {
             throw new IllegalArgumentException("Availability should be provided");
         }
@@ -37,48 +39,57 @@ public class ItemServiceImpl implements ItemService {
             throw new IllegalArgumentException("Description should be provided");
         }
         checkUserExist(userId);
-        Item item = toItem(itemDto);
+        Item item = ItemMapper.toItem(itemDto);
         item.setOwner(userRepository.getUser(userId));
-        return itemRepository.createItem(item);
+        return toItemDto(itemRepository.createItem(item));
     }
 
     @Override
-    public Item updateItem(Long userId, ItemDto itemDto, Long itemId) {
+    public ItemDto updateItem(Long userId, ItemDto itemDto, Long itemId) {
         if (itemDto.getName() != null && itemDto.getName().isEmpty()) {
             throw new IllegalArgumentException("Name should be provided");
         }
         if (itemDto.getDescription() != null && itemDto.getDescription().isEmpty()) {
             throw new IllegalArgumentException("Description should be provided");
         }
+
         checkUserExist(userId);
         if (itemRepository.getItem(itemId) == null || !itemRepository.getItem(itemId).getOwner().getId().equals(userId)) {
             throw new NoSuchElementException("Item not exist");
         }
-        return itemRepository.updateItem(toItem(itemDto), itemId);
+
+        Item item = ItemMapper.toItem(itemDto);
+        return toItemDto(itemRepository.updateItem(item, itemId));
     }
 
     @Override
-    public Item getItem(Long userId, Long itemId) {
+    public ItemDto getItem(Long userId, Long itemId) {
         checkUserExist(userId);
         if (itemRepository.getItem(itemId) == null) {
             throw new NoSuchElementException("Item not exist");
         }
-        return itemRepository.getItem(itemId);
+        return toItemDto(itemRepository.getItem(itemId));
     }
 
     @Override
-    public Collection<Item> getItemsByOwner(Long userId) {
+    public Collection<ItemDto> getItemsByOwner(Long userId) {
         checkUserExist(userId);
-        return itemRepository.getItemsByOwner(userId);
+        return itemRepository.getItemsByOwner(userId)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Collection<Item> findItem(Long userId, String text) {
+    public Collection<ItemDto> findItem(Long userId, String text) {
         checkUserExist(userId);
         if (text.isEmpty()) {
             return Collections.emptyList();
         }
-        return itemRepository.findItem(text);
+        return itemRepository.findItem(text)
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     private void checkUserExist(Long userId) {

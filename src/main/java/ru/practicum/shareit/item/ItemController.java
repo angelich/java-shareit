@@ -13,9 +13,6 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
-
-import static ru.practicum.shareit.item.ItemMapper.toItemDto;
 
 /**
  * Контроллер вещей
@@ -31,7 +28,7 @@ public class ItemController {
 
     @PostMapping
     ItemDto createItem(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody ItemDto itemDto) {
-        return toItemDto(itemService.createItem(userId, itemDto));
+        return itemService.createItem(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
@@ -39,27 +36,21 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") Long userId,
             @RequestBody ItemDto itemDto,
             @PathVariable Long itemId) {
-        return toItemDto(itemService.updateItem(userId, itemDto, itemId));
+        return itemService.updateItem(userId, itemDto, itemId);
     }
 
     @GetMapping("/{itemId}")
     ItemDto getItem(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable Long itemId) {
-        return toItemDto(itemService.getItem(userId, itemId));
+        return itemService.getItem(userId, itemId);
     }
 
     @GetMapping
     Collection<ItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getItemsByOwner(userId)
-                .stream()
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+        return itemService.getItemsByOwner(userId);
     }
 
     @GetMapping("/search")
     Collection<ItemDto> findItem(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestParam("text") String text) {
-        return itemService.findItem(userId, text)
-                .stream()
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+        return itemService.findItem(userId, text);
     }
 }
