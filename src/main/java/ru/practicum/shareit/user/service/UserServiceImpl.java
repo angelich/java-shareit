@@ -35,7 +35,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(UserDto userDto) {
         User user = toUser(userDto);
-        checkEmailAlreadyExist(user.getEmail());
         return toUserDto(userRepository.save(user));
     }
 
@@ -62,7 +61,6 @@ public class UserServiceImpl implements UserService {
 
         String userEmail = updatedUser.getEmail();
         if (userEmail != null) {
-            checkEmailAlreadyExist(userEmail);
             savedUser.setEmail(userEmail);
         }
         userRepository.save(savedUser);
@@ -73,12 +71,5 @@ public class UserServiceImpl implements UserService {
     public void checkUserExist(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not exist"));
-    }
-
-    private void checkEmailAlreadyExist(String email) {
-        boolean isEmailAlreadyExist = userRepository.existsByEmail(email);
-        if (isEmailAlreadyExist) {
-            throw new IllegalStateException("Email is already exists");
-        }
     }
 }

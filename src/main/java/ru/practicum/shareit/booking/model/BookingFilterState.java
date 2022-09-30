@@ -34,5 +34,10 @@ public enum BookingFilterState {
     /**
      * Отклоненное владельцем
      */
-    REJECTED
+    REJECTED,
+
+    /**
+     * Неподдерживаемый статус
+     */
+    UNSUPPORTED_STATUS
 }

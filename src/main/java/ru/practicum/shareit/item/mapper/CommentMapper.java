@@ -2,6 +2,10 @@ package ru.practicum.shareit.item.mapper;
 
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.model.User;
+
+import java.time.LocalDateTime;
 
 public class CommentMapper {
     private CommentMapper() {
@@ -10,20 +14,19 @@ public class CommentMapper {
     public static CommentDto toCommentDto(Comment comment) {
         return CommentDto.builder()
                 .id(comment.getId())
-                .author(comment.getAuthor())
+                .authorName(comment.getAuthor().getName())
                 .created(comment.getCreated())
                 .text(comment.getText())
-                .item(comment.getItem())
                 .build();
     }
 
-    public static Comment toComment(CommentDto dto) {
+    public static Comment toComment(CommentDto dto, User user, Item item, LocalDateTime time) {
         return Comment.builder()
                 .id(dto.getId())
-                .author(dto.getAuthor())
-                .created(dto.getCreated())
+                .author(user)
+                .created(time)
                 .text(dto.getText())
-                .item(dto.getItem())
+                .item(item)
                 .build();
     }
 }

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingMapper;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingResponse;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingFilterState;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 
 import static java.time.LocalDateTime.now;
 import static ru.practicum.shareit.booking.BookingMapper.toBooking;
-import static ru.practicum.shareit.booking.BookingMapper.toBookingDto;
+import static ru.practicum.shareit.booking.BookingMapper.toBookingResponse;
 import static ru.practicum.shareit.booking.model.BookingStatus.APPROVED;
 import static ru.practicum.shareit.booking.model.BookingStatus.REJECTED;
 import static ru.practicum.shareit.booking.model.BookingStatus.WAITING;
@@ -39,138 +40,145 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto bookItem(Long userId, BookingDto bookingDto) {
+    public BookingResponse bookItem(Long userId, BookingDto bookingDto) {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new NoSuchElementException("User not exist"));
-        Item item = itemRepository.findById(bookingDto.getItem().getId()).orElseThrow(
+        Item item = itemRepository.findById(bookingDto.getItemId()).orElseThrow(
                 () -> new NoSuchElementException("Item not exist"));
 
-        //Старт бронирования не может быть позже конца бронирования и не позже сегодняшнего дня
-        if (bookingDto.getStartDate().isAfter(bookingDto.getEndDate()) || bookingDto.getStartDate().isBefore(now().minusDays(1L))) {
+        if (!item.getAvailable()) {
+            throw new IllegalArgumentException("Item not available");
+        }
+
+        if (item.getOwner().getId().equals(userId)) {
+            throw new NoSuchElementException("Owner can't book his item");
+        }
+
+        if (bookingDto.getStart().isAfter(bookingDto.getEnd())) {
             throw new IllegalArgumentException("Invalid booking time");
         }
 
-        Booking booking = toBooking(bookingDto);
-        booking.setBooker(user);
-        booking.setItem(item);
+        Booking booking = toBooking(bookingDto, item, user);
         booking.setStatus(WAITING);
 
         Booking savedBooking = bookingRepository.save(booking);
-        return toBookingDto(savedBooking);
+        return toBookingResponse(savedBooking);
     }
 
     @Override
-    public BookingDto approveBooking(Long userId, Long bookingId, Boolean approved) {
+    public BookingResponse approveBooking(Long userId, Long bookingId, Boolean approved) {
         userService.checkUserExist(userId);
 
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
                 () -> new NoSuchElementException("Booking not exist"));
 
         if (booking.getItem().getOwner().getId().compareTo(userId) != 0) {
-            throw new NoSuchElementException("Booking not exist");
+            throw new NoSuchElementException("Booking not allowed");
+        }
+
+        if (approved && APPROVED == booking.getStatus()) {
+            throw new IllegalArgumentException("Booking can't be approved in current status");
         }
 
         BookingStatus status = approved ? APPROVED : REJECTED;
         booking.setStatus(status);
 
         Booking savedBooking = bookingRepository.save(booking);
-        return toBookingDto(savedBooking);
+        return toBookingResponse(savedBooking);
     }
 
     @Override
-    public BookingDto getBooking(Long userId, Long bookingId) {
+    public BookingResponse getBooking(Long userId, Long bookingId) {
         userService.checkUserExist(userId);
 
         Booking booking = bookingRepository.findById(bookingId).orElseThrow(
                 () -> new NoSuchElementException("Booking not exist"));
 
         //Получить бронирование может либо автор бронирования, либо владелец вещи
-        if (booking.getItem().getOwner().getId().equals(userId) || booking.getBooker().getId().equals(userId)) {
-            throw new NoSuchElementException("Booking not exist");
+        if (!booking.getItem().getOwner().getId().equals(userId) && !booking.getBooker().getId().equals(userId)) {
+            throw new NoSuchElementException("Access denied");
         }
 
-        return toBookingDto(booking);
+        return toBookingResponse(booking);
     }
 
     @Override
-    public List<BookingDto> getUserBookings(Long userId, String state) {
+    public List<BookingResponse> getUserBookings(Long userId, BookingFilterState state) {
         userService.checkUserExist(userId);
-        BookingFilterState filterState = BookingFilterState.valueOf(state.toUpperCase());
 
-        switch (filterState) {
+        switch (state) {
             case ALL:
                 return bookingRepository.findBookingsByBooker_IdOrderByStartDesc(userId)
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findBookingsByBooker_IdAndStartAfterOrderByStartDesc(userId, now().minusDays(1L))
+                return bookingRepository.findBookingsByBooker_IdAndStartBeforeAndEndAfter(userId, now(), now())
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case PAST:
                 return bookingRepository.findBookingsByBooker_IdAndEndBeforeOrderByStartDesc(userId, now())
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case FUTURE:
                 return bookingRepository.findBookingsByBooker_IdAndStartAfterOrderByStartDesc(userId, now())
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case REJECTED:
                 return bookingRepository.findBookingsByBooker_IdAndStatusIsOrderByStartDesc(userId, REJECTED)
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case WAITING:
                 return bookingRepository.findBookingsByBooker_IdAndStatusIsOrderByStartDesc(userId, WAITING)
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             default:
-                throw new IllegalStateException("Illegal query state");
+                throw new IllegalArgumentException("Unknown state: " + state.name());
         }
     }
 
     @Override
-    public List<BookingDto> getOwnerBookings(Long userId, String state) {
+    public List<BookingResponse> getOwnerBookings(Long userId, BookingFilterState state) {
         userService.checkUserExist(userId);
-        BookingFilterState filterState = BookingFilterState.valueOf(state.toUpperCase());
 
-        switch (filterState) {
+        switch (state) {
             case ALL:
                 return bookingRepository.findBookingsByItem_Owner_IdOrderByStartDesc(userId)
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case CURRENT:
-                return bookingRepository.findBookingsByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, now().minusDays(1L))
+                return bookingRepository.findBookingsByItem_Owner_IdAndStartBeforeAndEndAfter(userId, now(), now())
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case PAST:
                 return bookingRepository.findBookingsByItem_Owner_IdAndEndBeforeOrderByStartDesc(userId, now())
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case FUTURE:
                 return bookingRepository.findBookingsByItem_Owner_IdAndStartAfterOrderByStartDesc(userId, now())
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case REJECTED:
                 return bookingRepository.findBookingsByItem_Owner_IdAndStatusIsOrderByStartDesc(userId, REJECTED)
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             case WAITING:
                 return bookingRepository.findBookingsByItem_Owner_IdAndStatusIsOrderByStartDesc(userId, WAITING)
                         .stream()
-                        .map(BookingMapper::toBookingDto)
+                        .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             default:
-                throw new IllegalStateException("Illegal query state");
+                throw new IllegalArgumentException("Unknown state: " + state.name());
         }
     }
 }

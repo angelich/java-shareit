@@ -6,13 +6,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.requests.ItemRequest;
 import ru.practicum.shareit.validation.Create;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -34,9 +33,9 @@ public class ExtendedItemDto {
 
     private ItemRequest request;
 
-    private LocalDateTime lastDate;
+    private BookingDto lastBooking;
 
-    private LocalDateTime nextDate;
+    private BookingDto nextBooking;
 
-    private List<Comment> comments;
+    private List<CommentDto> comments;
 }

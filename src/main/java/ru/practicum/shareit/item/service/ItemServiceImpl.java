@@ -5,6 +5,7 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ExtendedItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
@@ -14,6 +15,8 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -85,13 +88,21 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ExtendedItemDto getItem(Long userId, Long itemId) {
-        userService.checkUserExist(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not exist"));
+
         Item item = itemRepository.findById(itemId).orElseThrow(
                 () -> new NoSuchElementException("Item not exist"));
 
-        ExtendedItemDto extendedItemDto = toExtendedItemDto(item);
-        extendedItemDto.setComments(commentRepository.findAllByItem_Id(itemId));
-        return extendedItemDto;
+        List<CommentDto> comments = commentRepository.findAllByItem_Id(itemId)
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+
+        var nextBooking = bookingRepository.findTopByItem_IdAndItem_OwnerAndStartAfterOrderByStartAsc(itemId, user, now());
+        var lastBooking = bookingRepository.findTopByItem_IdAndItem_OwnerAndEndBeforeOrderByEndDesc(itemId, user, now());
+
+        return toExtendedItemDto(item, nextBooking, lastBooking, comments);
     }
 
     @Override
@@ -99,18 +110,22 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not exist"));
 
-        List<ExtendedItemDto> items = itemRepository.findAllByOwner(user)
-                .stream()
-                .map(ItemMapper::toExtendedItemDto)
-                .collect(Collectors.toList());
+        List<Item> items = itemRepository.findAllByOwner(user);
 
-        items.forEach(it -> {
-            it.setNextDate(bookingRepository.findNextBookingDateByItemId(it.getId()));
-            it.setLastDate(bookingRepository.findLastBookingDateByItemId(it.getId()));
-            it.setComments(commentRepository.findAllByItem_Id(it.getId()));
-        });
-
-        return items;
+        LocalDateTime currentTime = now();
+        List<ExtendedItemDto> itemDtoList = new ArrayList<>();
+        for (Item i : items) {
+            itemDtoList.add(
+                    toExtendedItemDto(
+                            i,
+                            bookingRepository.findTopByItem_IdAndItem_OwnerAndStartAfterOrderByStartAsc(i.getId(), user, currentTime),
+                            bookingRepository.findTopByItem_IdAndItem_OwnerAndEndBeforeOrderByEndDesc(i.getId(), user, currentTime),
+                            commentRepository.findAllByItem_Id(i.getId())
+                                    .stream()
+                                    .map(CommentMapper::toCommentDto)
+                                    .collect(Collectors.toList())));
+        }
+        return itemDtoList;
     }
 
     @Override
@@ -127,16 +142,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto createComment(Long userId, Long itemId, CommentDto comment) {
-        userService.checkUserExist(userId);
-        if (!itemRepository.existsById(itemId)) {
-            throw new NoSuchElementException("Item not exist");
-        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not exist"));
+
+        Item item = itemRepository.findById(itemId).orElseThrow(
+                () -> new NoSuchElementException("Item not exist"));
 
         boolean isAllowedToCreateComment = bookingRepository.existsByBooker_IdAndItem_IdAndEndBefore(userId, itemId, now());
         if (!isAllowedToCreateComment) {
             throw new IllegalArgumentException("User can't leave comment for this item");
         }
-        Comment savedComment = commentRepository.save(toComment(comment));
+        Comment savedComment = commentRepository.save(toComment(comment, user, item, now()));
         return toCommentDto(savedComment);
     }
 }
