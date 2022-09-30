@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -17,7 +18,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ItemRequest {
     private Long id;
+    private Item item;
     private String description;
-    private User requestor;
-    private LocalDateTime createdDateTime;
+    private User requester;
+    private LocalDateTime createdDateTime = LocalDateTime.now();
 }

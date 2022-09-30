@@ -7,11 +7,9 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.Collection;
-import java.util.Objects;
-import java.util.regex.Pattern;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static java.util.regex.Pattern.compile;
 import static ru.practicum.shareit.user.UserMapper.toUser;
 import static ru.practicum.shareit.user.UserMapper.toUserDto;
 
@@ -21,62 +19,64 @@ import static ru.practicum.shareit.user.UserMapper.toUserDto;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private static final Pattern EMAIL_PATTERN = compile("^(.+)@(\\S+)$");
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    private static void checkEmailValid(UserDto user) {
-        boolean isEmailValid = EMAIL_PATTERN.matcher(user.getEmail()).matches();
-        if (!isEmailValid) {
-            throw new IllegalArgumentException("Invalid email");
-        }
-    }
-
     @Override
     public Collection<UserDto> getAllUsers() {
-        return userRepository.getAllUsers()
+        return userRepository.findAll()
                 .stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public UserDto createUser(UserDto user) {
-        String userEmail = user.getEmail();
-        if (userEmail == null) {
-            throw new IllegalArgumentException("Email should be provided");
-        }
-        checkEmailValid(user);
-        checkEmailAlreadyExist(user);
-        User createdUser = userRepository.createUser(toUser(user));
-        return toUserDto(createdUser);
+    public UserDto createUser(UserDto userDto) {
+        User user = toUser(userDto);
+        checkEmailAlreadyExist(user.getEmail());
+        return toUserDto(userRepository.save(user));
     }
 
     @Override
     public UserDto getUser(Long id) {
-        return toUserDto(userRepository.getUser(id));
+        return toUserDto(userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("User not exist")));
     }
 
     @Override
     public void deleteUser(Long id) {
-        userRepository.deleteUser(id);
+        userRepository.deleteById(id);
     }
 
     @Override
-    public UserDto updateUser(Long id, UserDto user) {
-        if (user.getEmail() != null) {
-            checkEmailValid(user);
-            checkEmailAlreadyExist(user);
+    public UserDto updateUser(Long id, UserDto userDto) {
+        User updatedUser = toUser(userDto);
+        User savedUser = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("User not exist"));
+
+        if (updatedUser.getName() != null) {
+            savedUser.setName(updatedUser.getName());
         }
-        User updatedUser = userRepository.update(id, toUser(user));
-        return toUserDto(updatedUser);
+
+        String userEmail = updatedUser.getEmail();
+        if (userEmail != null) {
+            checkEmailAlreadyExist(userEmail);
+            savedUser.setEmail(userEmail);
+        }
+        userRepository.save(savedUser);
+        return toUserDto(savedUser);
     }
 
-    private void checkEmailAlreadyExist(UserDto user) {
-        boolean isEmailAlreadyExist = userRepository.getAllUsers().stream()
-                .anyMatch(u -> u.getEmail().equals(user.getEmail()) && !Objects.equals(u.getId(), user.getId()));
+    @Override
+    public void checkUserExist(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not exist"));
+    }
+
+    private void checkEmailAlreadyExist(String email) {
+        boolean isEmailAlreadyExist = userRepository.existsByEmail(email);
         if (isEmailAlreadyExist) {
             throw new IllegalStateException("Email is already exists");
         }

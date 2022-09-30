@@ -1,4 +1,5 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.item.dto;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,7 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.validation.Create;
 
+import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 
 @Getter
@@ -15,11 +18,15 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Booking {
+public class CommentDto {
     private Long id;
+
+    @NotBlank(groups = Create.class, message = "Text should be provided")
+    private String text;
+
     private Item item;
-    private User booker;
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private BookingStatus status;
+
+    private LocalDateTime created;
+
+    private User author;
 }
