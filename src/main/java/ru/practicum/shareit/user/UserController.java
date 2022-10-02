@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -10,12 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.validation.Create;
+import ru.practicum.shareit.validation.Update;
 
-import javax.validation.Valid;
 import java.util.Collection;
-import java.util.stream.Collectors;
-
-import static ru.practicum.shareit.user.UserMapper.toUserDto;
 
 /**
  * Контроллер пользователей
@@ -31,25 +30,22 @@ public class UserController {
 
     @GetMapping
     Collection<UserDto> getAllUsers() {
-        return userService.getAllUsers()
-                .stream()
-                .map(UserMapper::toUserDto)
-                .collect(Collectors.toList());
+        return userService.getAllUsers();
     }
 
     @PostMapping
-    UserDto createUser(@Valid @RequestBody UserDto user) {
-        return toUserDto(userService.createUser(user));
+    UserDto createUser(@Validated(Create.class) @RequestBody UserDto user) {
+        return userService.createUser(user);
     }
 
     @GetMapping(path = "/{id}")
     UserDto getUser(@PathVariable Long id) {
-        return toUserDto(userService.getUser(id));
+        return userService.getUser(id);
     }
 
     @PatchMapping(path = "/{id}")
-    UserDto updateUser(@Valid @RequestBody UserDto user, @PathVariable Long id) {
-        return toUserDto(userService.updateUser(id, user));
+    UserDto updateUser(@Validated(Update.class) @RequestBody UserDto user, @PathVariable Long id) {
+        return userService.updateUser(id, user);
     }
 
     @DeleteMapping(path = "/{id}")

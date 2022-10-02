@@ -10,7 +10,7 @@ public final class ItemRequestMapper {
     public static ItemRequestDto toItemDto(ItemRequest itemRequest) {
         return ItemRequestDto.builder()
                 .id(itemRequest.getId())
-                .requestor(itemRequest.getRequestor())
+                .requestor(itemRequest.getRequester())
                 .created(itemRequest.getCreatedDateTime())
                 .description(itemRequest.getDescription())
                 .build();

@@ -1,16 +1,34 @@
 package ru.practicum.shareit.item.service;
 
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ExtendedItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.CommentMapper;
+import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
-import static ru.practicum.shareit.item.ItemMapper.toItem;
+import static java.time.LocalDateTime.now;
+import static ru.practicum.shareit.item.mapper.CommentMapper.toComment;
+import static ru.practicum.shareit.item.mapper.CommentMapper.toCommentDto;
+import static ru.practicum.shareit.item.mapper.ItemMapper.toExtendedItemDto;
+import static ru.practicum.shareit.item.mapper.ItemMapper.toItem;
+import static ru.practicum.shareit.item.mapper.ItemMapper.toItemDto;
 
 /**
  * Сервис по работе с вещами
@@ -18,72 +36,123 @@ import static ru.practicum.shareit.item.ItemMapper.toItem;
 @Service
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
+    private final UserService userService;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
-    public ItemServiceImpl(ItemRepository itemRepository, UserRepository userRepository) {
+    public ItemServiceImpl(ItemRepository itemRepository,
+                           UserService userService,
+                           UserRepository userRepository,
+                           BookingRepository bookingRepository,
+                           CommentRepository commentRepository) {
         this.itemRepository = itemRepository;
+        this.userService = userService;
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Override
-    public Item createItem(Long userId, ItemDto itemDto) {
-        if (itemDto.getAvailable() == null) {
-            throw new IllegalArgumentException("Availability should be provided");
-        }
-        if (itemDto.getName() == null || itemDto.getName().isEmpty()) {
-            throw new IllegalArgumentException("Name should be provided");
-        }
-        if (itemDto.getDescription() == null || itemDto.getDescription().isEmpty()) {
-            throw new IllegalArgumentException("Description should be provided");
-        }
-        checkUserExist(userId);
+    public ItemDto createItem(Long userId, ItemDto itemDto) {
+        userService.checkUserExist(userId);
         Item item = toItem(itemDto);
-        item.setOwner(userRepository.getUser(userId));
-        return itemRepository.createItem(item);
+        User user = userRepository.findById(userId).get();
+        item.setOwner(user);
+        Item savedItem = itemRepository.save(item);
+        return toItemDto(savedItem);
     }
 
     @Override
-    public Item updateItem(Long userId, ItemDto itemDto, Long itemId) {
-        if (itemDto.getName() != null && itemDto.getName().isEmpty()) {
-            throw new IllegalArgumentException("Name should be provided");
-        }
-        if (itemDto.getDescription() != null && itemDto.getDescription().isEmpty()) {
-            throw new IllegalArgumentException("Description should be provided");
-        }
-        checkUserExist(userId);
-        if (itemRepository.getItem(itemId) == null || !itemRepository.getItem(itemId).getOwner().getId().equals(userId)) {
+    public ItemDto updateItem(Long userId, ItemDto itemDto, Long itemId) {
+        userService.checkUserExist(userId);
+
+        Item savedItem = itemRepository.findById(itemId).orElseThrow(
+                () -> new NoSuchElementException("Item not exist"));
+
+        if (savedItem.getOwner().getId().compareTo(userId) != 0) {
             throw new NoSuchElementException("Item not exist");
         }
-        return itemRepository.updateItem(toItem(itemDto), itemId);
-    }
-
-    @Override
-    public Item getItem(Long userId, Long itemId) {
-        checkUserExist(userId);
-        if (itemRepository.getItem(itemId) == null) {
-            throw new NoSuchElementException("Item not exist");
+        if (itemDto.getAvailable() != null) {
+            savedItem.setAvailable(itemDto.getAvailable());
         }
-        return itemRepository.getItem(itemId);
+        if (itemDto.getName() != null) {
+            savedItem.setName(itemDto.getName());
+        }
+        if (itemDto.getDescription() != null) {
+            savedItem.setDescription(itemDto.getDescription());
+        }
+        Item updatedItem = itemRepository.save(savedItem);
+        return toItemDto(updatedItem);
     }
 
     @Override
-    public Collection<Item> getItemsByOwner(Long userId) {
-        checkUserExist(userId);
-        return itemRepository.getItemsByOwner(userId);
+    public ExtendedItemDto getItem(Long userId, Long itemId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not exist"));
+
+        Item item = itemRepository.findById(itemId).orElseThrow(
+                () -> new NoSuchElementException("Item not exist"));
+
+        List<CommentDto> comments = commentRepository.findAllByItem_Id(itemId)
+                .stream()
+                .map(CommentMapper::toCommentDto)
+                .collect(Collectors.toList());
+
+        var nextBooking = bookingRepository.findTopByItem_IdAndItem_OwnerAndStartAfterOrderByStartAsc(itemId, user, now());
+        var lastBooking = bookingRepository.findTopByItem_IdAndItem_OwnerAndEndBeforeOrderByEndDesc(itemId, user, now());
+
+        return toExtendedItemDto(item, nextBooking, lastBooking, comments);
     }
 
     @Override
-    public Collection<Item> findItem(Long userId, String text) {
-        checkUserExist(userId);
+    public Collection<ExtendedItemDto> getItemsByOwner(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not exist"));
+
+        List<Item> items = itemRepository.findAllByOwner(user);
+
+        LocalDateTime currentTime = now();
+        List<ExtendedItemDto> itemDtoList = new ArrayList<>();
+        for (Item i : items) {
+            itemDtoList.add(
+                    toExtendedItemDto(
+                            i,
+                            bookingRepository.findTopByItem_IdAndItem_OwnerAndStartAfterOrderByStartAsc(i.getId(), user, currentTime),
+                            bookingRepository.findTopByItem_IdAndItem_OwnerAndEndBeforeOrderByEndDesc(i.getId(), user, currentTime),
+                            commentRepository.findAllByItem_Id(i.getId())
+                                    .stream()
+                                    .map(CommentMapper::toCommentDto)
+                                    .collect(Collectors.toList())));
+        }
+        return itemDtoList;
+    }
+
+    @Override
+    public Collection<ItemDto> findItem(Long userId, String text) {
+        userService.checkUserExist(userId);
         if (text.isEmpty()) {
             return Collections.emptyList();
         }
-        return itemRepository.findItem(text);
+        return itemRepository.findAllByText(text.toLowerCase())
+                .stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
-    private void checkUserExist(Long userId) {
-        if (userRepository.getUser(userId) == null) {
-            throw new NoSuchElementException("User not exist");
+    @Override
+    public CommentDto createComment(Long userId, Long itemId, CommentDto comment) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not exist"));
+
+        Item item = itemRepository.findById(itemId).orElseThrow(
+                () -> new NoSuchElementException("Item not exist"));
+
+        boolean isAllowedToCreateComment = bookingRepository.existsByBooker_IdAndItem_IdAndEndBefore(userId, itemId, now());
+        if (!isAllowedToCreateComment) {
+            throw new IllegalArgumentException("User can't leave comment for this item");
         }
+        Comment savedComment = commentRepository.save(toComment(comment, user, item, now()));
+        return toCommentDto(savedComment);
     }
 }
