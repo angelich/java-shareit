@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingResponse;
-import ru.practicum.shareit.booking.model.BookingFilterState;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.validation.Create;
 
@@ -48,13 +47,13 @@ public class BookingController {
 
     @GetMapping
     List<BookingResponse> getUserBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                          @RequestParam(name = "state", defaultValue = "ALL") BookingFilterState state) {
+                                          @RequestParam(name = "state", defaultValue = "ALL") String state) {
         return bookingService.getUserBookings(userId, state);
     }
 
     @GetMapping("/owner")
     List<BookingResponse> getOwnerBookings(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                           @RequestParam(defaultValue = "ALL") BookingFilterState state) {
+                                           @RequestParam(defaultValue = "ALL") String state) {
         return bookingService.getOwnerBookings(userId, state);
     }
 }

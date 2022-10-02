@@ -103,10 +103,11 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> getUserBookings(Long userId, BookingFilterState state) {
+    public List<BookingResponse> getUserBookings(Long userId, String state) {
         userService.checkUserExist(userId);
+        BookingFilterState filterState = BookingFilterState.valueOf(state.toUpperCase());
 
-        switch (state) {
+        switch (filterState) {
             case ALL:
                 return bookingRepository.findBookingsByBooker_IdOrderByStartDesc(userId)
                         .stream()
@@ -138,15 +139,16 @@ public class BookingServiceImpl implements BookingService {
                         .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             default:
-                throw new IllegalArgumentException("Unknown state: " + state.name());
+                throw new IllegalArgumentException("Unknown state: " + filterState);
         }
     }
 
     @Override
-    public List<BookingResponse> getOwnerBookings(Long userId, BookingFilterState state) {
+    public List<BookingResponse> getOwnerBookings(Long userId, String state) {
         userService.checkUserExist(userId);
+        BookingFilterState filterState = BookingFilterState.valueOf(state.toUpperCase());
 
-        switch (state) {
+        switch (filterState) {
             case ALL:
                 return bookingRepository.findBookingsByItem_Owner_IdOrderByStartDesc(userId)
                         .stream()
@@ -178,7 +180,7 @@ public class BookingServiceImpl implements BookingService {
                         .map(BookingMapper::toBookingResponse)
                         .collect(Collectors.toList());
             default:
-                throw new IllegalArgumentException("Unknown state: " + state.name());
+                throw new IllegalArgumentException("Unknown state: " + filterState);
         }
     }
 }
