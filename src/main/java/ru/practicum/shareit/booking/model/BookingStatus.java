@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.booking.model;
 
 
 /**
@@ -9,7 +9,7 @@ public enum BookingStatus {
     /**
      * Бронирование, ожидающее подтверждения
      */
-    WAITING_FOR_APPROVE,
+    WAITING,
 
     /**
      * Подтвержденное бронирование

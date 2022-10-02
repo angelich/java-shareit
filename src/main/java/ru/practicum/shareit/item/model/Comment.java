@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -22,23 +23,24 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "items")
-public class Item {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "item_id")
+    @Column(name = "comment_id")
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
-
-    @Column
-    private String description;
-
-    @Column(name = "is_available", nullable = false)
-    private Boolean available;
+    @Column(name = "comment_text", nullable = false)
+    private String text;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id")
-    private User owner;
+    @JoinColumn(name = "item_id")
+    private Item item;
+
+    @Column
+    private LocalDateTime created;
+
+    @ManyToOne
+    @JoinColumn(name = "author_id")
+    private User author;
 }
