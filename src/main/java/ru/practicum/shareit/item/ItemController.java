@@ -50,13 +50,18 @@ public class ItemController {
     }
 
     @GetMapping
-    Collection<ExtendedItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getItemsByOwner(userId);
+    Collection<ExtendedItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                @RequestParam("from") Integer from,
+                                                @RequestParam("size") Integer size) {
+        return itemService.getItemsByOwner(userId, from, size);
     }
 
     @GetMapping("/search")
-    Collection<ItemDto> findItem(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestParam("text") String text) {
-        return itemService.findItem(userId, text);
+    Collection<ItemDto> findItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @RequestParam("text") String text,
+                                 @RequestParam("from") Integer from,
+                                 @RequestParam("size") Integer size) {
+        return itemService.findItem(userId, text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

@@ -1,5 +1,7 @@
 package ru.practicum.shareit.item.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -106,11 +108,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ExtendedItemDto> getItemsByOwner(Long userId) {
+    public Collection<ExtendedItemDto> getItemsByOwner(Long userId, Integer from, Integer size) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not exist"));
 
-        List<Item> items = itemRepository.findAllByOwner(user);
+        Page<Item> items = itemRepository.findAllByOwner(user, PageRequest.of(from / size, size));
 
         LocalDateTime currentTime = now();
         List<ExtendedItemDto> itemDtoList = new ArrayList<>();
@@ -129,12 +131,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> findItem(Long userId, String text) {
+    public Collection<ItemDto> findItem(Long userId, String text, Integer from, Integer size) {
         userService.checkUserExist(userId);
         if (text.isEmpty()) {
             return Collections.emptyList();
         }
-        return itemRepository.findAllByText(text.toLowerCase())
+        return itemRepository.findAllByText(text.toLowerCase(), PageRequest.of(from / size, size))
                 .stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
