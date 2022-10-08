@@ -6,9 +6,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 @Getter
@@ -16,10 +20,20 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Entity
+@Table(name = "item_requests")
 public class ItemRequest {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "request_id")
     private Long id;
-    private Item item;
+
+    @Column(nullable = false)
     private String description;
-    private User requester;
-    private LocalDateTime createdDateTime = LocalDateTime.now();
+
+    @Column(name = "requester_id", nullable = false)
+    private Long requester;
+
+    @Column(name = "created", nullable = false)
+    private LocalDateTime createdDateTime;
 }
