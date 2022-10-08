@@ -20,6 +20,7 @@ public final class ItemMapper {
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
+                .requestId(item.getRequestId())
                 .build();
     }
 
@@ -34,6 +35,7 @@ public final class ItemMapper {
                 .lastBooking(
                         lastBooking != null ? new BookingDto(lastBooking.getId(), lastBooking.getBooker().getId()) : null)
                 .comments(comments)
+                .requestId(item.getRequestId())
                 .build();
     }
 
@@ -43,6 +45,7 @@ public final class ItemMapper {
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())
+                .requestId(itemDto.getRequestId())
                 .build();
     }
 }

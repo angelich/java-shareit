@@ -19,4 +19,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "WHERE i.available = true " +
             "AND (LOWER(i.name) LIKE %:text% OR LOWER(i.description) LIKE %:text%)")
     List<Item> findAllByText(String text);
+
+    List<Item> findAllByRequestId(Long requestId);
 }

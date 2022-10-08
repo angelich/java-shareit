@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.shareit.requests.dto.ItemRequestDto;
+import ru.practicum.shareit.requests.service.RequestService;
 import ru.practicum.shareit.validation.Create;
 
 import java.util.Collection;
@@ -39,8 +40,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     Collection<ItemRequestDto> getAllRequests(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                              @RequestParam("from") Long from,
-                                              @RequestParam("size") Long size) {
+                                              @RequestParam("from") Integer from,
+                                              @RequestParam("size") Integer size) {
         return requestService.getAllRequests(userId, from, size);
     }
 

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.requests;
+package ru.practicum.shareit.requests.service;
 
 import ru.practicum.shareit.requests.dto.ItemRequestDto;
 
@@ -9,7 +9,7 @@ public interface RequestService {
 
     Collection<ItemRequestDto> getMyRequests(Long userId);
 
-    Collection<ItemRequestDto> getAllRequests(Long userId, Long from, Long size);
+    Collection<ItemRequestDto> getAllRequests(Long userId, Integer from, Integer size);
 
     ItemRequestDto getOneRequest(Long userId, Long requestId);
 }

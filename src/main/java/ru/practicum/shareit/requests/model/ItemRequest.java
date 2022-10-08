@@ -1,4 +1,4 @@
-package ru.practicum.shareit.requests;
+package ru.practicum.shareit.requests.model;
 
 
 import lombok.AllArgsConstructor;
@@ -35,5 +35,5 @@ public class ItemRequest {
     private Long requester;
 
     @Column(name = "created", nullable = false)
-    private LocalDateTime createdDateTime;
+    private LocalDateTime createdDateTime = LocalDateTime.now();
 }
