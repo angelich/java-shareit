@@ -104,7 +104,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> getUserBookings(Long userId, String state, Integer from, Integer size) {
+    public List<BookingResponse> getUserBookings(Long userId, String state, int from, int size) {
         userService.checkUserExist(userId);
         PageRequest pageRequest = PageRequest.of(from / size, size);
         BookingFilterState filterState = BookingFilterState.valueOf(state.toUpperCase());
@@ -146,7 +146,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> getOwnerBookings(Long userId, String state, Integer from, Integer size) {
+    public List<BookingResponse> getOwnerBookings(Long userId, String state, int from, int size) {
         userService.checkUserExist(userId);
         PageRequest pageRequest = PageRequest.of(from / size, size);
         BookingFilterState filterState = BookingFilterState.valueOf(state.toUpperCase());

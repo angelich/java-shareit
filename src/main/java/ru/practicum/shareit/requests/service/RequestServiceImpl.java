@@ -64,10 +64,18 @@ public class RequestServiceImpl implements RequestService {
     public Collection<ItemRequestDto> getAllRequests(Long userId, Integer from, Integer size) {
         userService.checkUserExist(userId);
 
-        return requestRepository.findAllByRequesterNot(userId, PageRequest.of(from / size, size))
+        List<ItemRequestDto> requests = requestRepository.findAllByRequesterNot(userId, PageRequest.of(from / size, size))
                 .stream()
                 .map(ItemRequestMapper::toItemRequestDto)
                 .collect(Collectors.toList());
+
+        requests.forEach(requestDto -> requestDto.setItems(
+                itemRepository.findAllByRequestId(requestDto.getId())
+                        .stream()
+                        .map(ItemMapper::toItemDto)
+                        .collect(Collectors.toList())));
+
+        return requests;
     }
 
     @Override

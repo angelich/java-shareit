@@ -17,12 +17,15 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.validation.Create;
 import ru.practicum.shareit.validation.Update;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 
 /**
  * Контроллер вещей
  */
 @RestController
+@Validated
 @RequestMapping("/items")
 public class ItemController {
     private final ItemService itemService;
@@ -51,16 +54,16 @@ public class ItemController {
 
     @GetMapping
     Collection<ExtendedItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                @RequestParam("from") Integer from,
-                                                @RequestParam("size") Integer size) {
+                                                @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
+                                                @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
         return itemService.getItemsByOwner(userId, from, size);
     }
 
     @GetMapping("/search")
     Collection<ItemDto> findItem(@RequestHeader("X-Sharer-User-Id") Long userId,
                                  @RequestParam("text") String text,
-                                 @RequestParam("from") Integer from,
-                                 @RequestParam("size") Integer size) {
+                                 @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
+                                 @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
         return itemService.findItem(userId, text, from, size);
     }
 

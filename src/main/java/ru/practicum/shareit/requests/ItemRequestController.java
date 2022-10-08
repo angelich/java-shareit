@@ -13,12 +13,15 @@ import ru.practicum.shareit.requests.dto.ItemRequestDto;
 import ru.practicum.shareit.requests.service.RequestService;
 import ru.practicum.shareit.validation.Create;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 
 /**
  * Контроллер запросов вещей
  */
 @RestController
+@Validated
 @RequestMapping(path = "/requests")
 public class ItemRequestController {
     private final RequestService requestService;
@@ -40,8 +43,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     Collection<ItemRequestDto> getAllRequests(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                              @RequestParam("from") Integer from,
-                                              @RequestParam("size") Integer size) {
+                                              @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
+                                              @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
         return requestService.getAllRequests(userId, from, size);
     }
 

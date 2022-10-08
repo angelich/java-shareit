@@ -108,7 +108,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ExtendedItemDto> getItemsByOwner(Long userId, Integer from, Integer size) {
+    public Collection<ExtendedItemDto> getItemsByOwner(Long userId, int from, int size) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not exist"));
 
@@ -131,7 +131,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> findItem(Long userId, String text, Integer from, Integer size) {
+    public Collection<ItemDto> findItem(Long userId, String text, int from, int size) {
         userService.checkUserExist(userId);
         if (text.isEmpty()) {
             return Collections.emptyList();
