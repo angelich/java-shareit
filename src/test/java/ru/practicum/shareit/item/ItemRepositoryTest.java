@@ -45,7 +45,7 @@ class ItemRepositoryTest {
         Page<Item> items = itemRepository.findAllByText("name 2", Pageable.unpaged());
         Item foundItem = items.stream().findFirst().get();
 
-        assertEquals(1L, foundItem.getId());
+        assertEquals(2L, foundItem.getId());
         assertEquals("name 2", foundItem.getName());
         assertEquals("desc 2", foundItem.getDescription());
     }
