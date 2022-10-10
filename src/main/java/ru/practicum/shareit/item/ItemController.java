@@ -26,7 +26,7 @@ import java.util.Collection;
  */
 @RestController
 @Validated
-@RequestMapping("/items")
+@RequestMapping(path = "/items")
 public class ItemController {
     private final ItemService itemService;
 

@@ -82,4 +82,31 @@ class ItemUnitTest {
         assertEquals("itemDesc", savedItem.getDescription());
         assertEquals(true, savedItem.getAvailable());
     }
+
+    @Test
+    void shouldUpdateItem() {
+        User user = new User(1L, "userName", "email@email.com");
+        userRepository.save(user);
+
+        Item item = new Item(1L, "itemName", "itemDesc", true, user, null);
+
+        Item itemForUpdate = new Item(1L, "itemNameUpdated", "itemDescUpdated", false, user, null);
+
+        ItemDto itemDtoForUpdate = new ItemDto(1L, "itemNameUpdated", "itemDescUpdated", false, null);
+
+        Mockito
+                .when(itemRepository.findById(ArgumentMatchers.anyLong()))
+                .thenReturn(Optional.of(item));
+
+        Mockito
+                .when(itemRepository.save(ArgumentMatchers.any(Item.class)))
+                .thenReturn(itemForUpdate);
+
+        var updatedItem = itemService.updateItem(user.getId(), itemDtoForUpdate, itemDtoForUpdate.getId());
+
+        assertEquals(1L, updatedItem.getId());
+        assertEquals("itemNameUpdated", updatedItem.getName());
+        assertEquals("itemDescUpdated", updatedItem.getDescription());
+        assertEquals(false, updatedItem.getAvailable());
+    }
 }

@@ -40,4 +40,26 @@ class UserIntegrationTest {
         assertThat(user.getName(), equalTo(userDto.getName()));
         assertThat(user.getEmail(), equalTo(userDto.getEmail()));
     }
+
+    @Test
+    void updateUser() {
+        UserDto userDto = new UserDto();
+        userDto.setName("name");
+        userDto.setEmail("email@mail.com");
+
+        userDto = userService.createUser(userDto);
+        userDto.setName("updatedName");
+        userDto.setEmail("updatedEmail");
+
+        userService.updateUser(userDto.getId(), userDto);
+
+        TypedQuery<User> query = em.createQuery("Select u from User u where u.id = :id", User.class);
+        User user = query
+                .setParameter("id", userDto.getId())
+                .getSingleResult();
+
+        assertThat(user.getId(), notNullValue());
+        assertThat(user.getName(), equalTo(userDto.getName()));
+        assertThat(user.getEmail(), equalTo(userDto.getEmail()));
+    }
 }
