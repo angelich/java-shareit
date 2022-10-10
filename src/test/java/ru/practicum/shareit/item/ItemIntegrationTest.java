@@ -6,13 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -22,8 +18,6 @@ import static org.hamcrest.Matchers.notNullValue;
 @Transactional
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class ItemIntegrationTest {
-
-    private final EntityManager em;
     private final UserService userService;
     private final ItemService itemService;
 
@@ -36,18 +30,12 @@ class ItemIntegrationTest {
 
         ItemDto itemDto = new ItemDto(1L, "itemName", "itemDesc", true, null);
 
-        itemService.createItem(userDto.getId(), itemDto);
+        var createdItem = itemService.createItem(userDto.getId(), itemDto);
 
-        TypedQuery<Item> query = em.createQuery("Select i from Item i where i.id = :id", Item.class);
-        Item item = query
-                .setParameter("id", userDto.getId())
-                .getSingleResult();
-
-        assertThat(item.getId(), notNullValue());
-        assertThat(item.getName(), equalTo(itemDto.getName()));
-        assertThat(item.getDescription(), equalTo(itemDto.getDescription()));
-        assertThat(item.getDescription(), equalTo(itemDto.getDescription()));
-        assertThat(item.getAvailable(), equalTo(itemDto.getAvailable()));
+        assertThat(createdItem.getId(), notNullValue());
+        assertThat(createdItem.getName(), equalTo(itemDto.getName()));
+        assertThat(createdItem.getDescription(), equalTo(itemDto.getDescription()));
+        assertThat(createdItem.getAvailable(), equalTo(itemDto.getAvailable()));
     }
 
     @Test
