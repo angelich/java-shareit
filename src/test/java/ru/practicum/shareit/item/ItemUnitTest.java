@@ -5,12 +5,17 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.booking.BookingRepository;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.item.dto.ExtendedItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.mapper.CommentMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -20,9 +25,13 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.util.List;
 import java.util.Optional;
 
+import static java.time.LocalDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 
 @ExtendWith(MockitoExtension.class)
 class ItemUnitTest {
@@ -65,14 +74,13 @@ class ItemUnitTest {
         dto.setAvailable(true);
 
         User user = new User(1L, "userName", "email@email.com");
-        userRepository.save(user);
 
         Mockito
-                .when(userRepository.findById(ArgumentMatchers.anyLong()))
+                .when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(user));
 
         Mockito
-                .when(itemRepository.save(ArgumentMatchers.any(Item.class)))
+                .when(itemRepository.save(any(Item.class)))
                 .thenReturn(new Item(1L, "itemName", "itemDesc", true, user, null));
 
         ItemDto savedItem = itemService.createItem(user.getId(), dto);
@@ -86,7 +94,6 @@ class ItemUnitTest {
     @Test
     void shouldUpdateItem() {
         User user = new User(1L, "userName", "email@email.com");
-        userRepository.save(user);
 
         Item item = new Item(1L, "itemName", "itemDesc", true, user, null);
 
@@ -95,11 +102,11 @@ class ItemUnitTest {
         ItemDto itemDtoForUpdate = new ItemDto(1L, "itemNameUpdated", "itemDescUpdated", false, null);
 
         Mockito
-                .when(itemRepository.findById(ArgumentMatchers.anyLong()))
+                .when(itemRepository.findById(anyLong()))
                 .thenReturn(Optional.of(item));
 
         Mockito
-                .when(itemRepository.save(ArgumentMatchers.any(Item.class)))
+                .when(itemRepository.save(any(Item.class)))
                 .thenReturn(itemForUpdate);
 
         var updatedItem = itemService.updateItem(user.getId(), itemDtoForUpdate, itemDtoForUpdate.getId());
@@ -108,5 +115,136 @@ class ItemUnitTest {
         assertEquals("itemNameUpdated", updatedItem.getName());
         assertEquals("itemDescUpdated", updatedItem.getDescription());
         assertEquals(false, updatedItem.getAvailable());
+    }
+
+    @Test
+    void shouldReturnItem() {
+        User user = new User(1L, "userName", "email@email.com");
+        Item item = new Item(1L, "itemName", "itemDesc", true, user, null);
+
+        Booking booking = Booking.builder()
+                .id(1L)
+                .booker(user).status(BookingStatus.APPROVED)
+                .start(now().plusMinutes(1L))
+                .end(now().plusDays(1L))
+                .build();
+
+        Mockito
+                .when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.of(user));
+
+        Mockito
+                .when(itemRepository.findById(anyLong()))
+                .thenReturn(Optional.of(item));
+
+        Mockito
+                .when(bookingRepository.findTopByItem_IdAndItem_OwnerAndStartAfterOrderByStartAsc(anyLong(), any(), any()))
+                .thenReturn(booking);
+
+        Mockito
+                .when(bookingRepository.findTopByItem_IdAndItem_OwnerAndEndBeforeOrderByEndDesc(anyLong(), any(), any()))
+                .thenReturn(booking);
+
+        ExtendedItemDto savedItem = itemService.getItem(user.getId(), item.getId());
+
+        assertEquals(1L, savedItem.getId());
+        assertEquals("itemName", savedItem.getName());
+        assertEquals("itemDesc", savedItem.getDescription());
+        assertEquals(true, savedItem.getAvailable());
+    }
+
+    @Test
+    void shouldReturnItemsByOwner() {
+        User user = new User(1L, "userName", "email@email.com");
+        Item item = new Item(1L, "itemName", "itemDesc", true, user, null);
+
+        var page = new PageImpl<>(List.of(item));
+
+        Booking booking = Booking.builder()
+                .id(1L)
+                .booker(user).status(BookingStatus.APPROVED)
+                .start(now().plusMinutes(1L))
+                .end(now().plusDays(1L))
+                .build();
+
+        Mockito
+                .when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.of(user));
+
+        Mockito
+                .when(itemRepository.findAllByOwner(any(), any()))
+                .thenReturn(page);
+
+        Mockito
+                .when(bookingRepository.findTopByItem_IdAndItem_OwnerAndStartAfterOrderByStartAsc(anyLong(), any(), any()))
+                .thenReturn(booking);
+
+        Mockito
+                .when(bookingRepository.findTopByItem_IdAndItem_OwnerAndEndBeforeOrderByEndDesc(anyLong(), any(), any()))
+                .thenReturn(booking);
+
+        var ownerItem = itemService.getItemsByOwner(user.getId(), 0, 10)
+                .stream().findFirst().get();
+
+        assertEquals(1L, ownerItem.getId());
+        assertEquals("itemName", ownerItem.getName());
+        assertEquals("itemDesc", ownerItem.getDescription());
+        assertEquals(true, ownerItem.getAvailable());
+    }
+
+    @Test
+    void shouldFindItem() {
+        User user = new User(1L, "userName", "email@email.com");
+        Item item = new Item(1L, "itemName", "itemDesc", true, user, null);
+
+        var page = new PageImpl<>(List.of(item));
+
+        Mockito
+                .when(itemRepository.findAllByText(any(), any()))
+                .thenReturn(page);
+
+        var foundItem = itemService.findItem(user.getId(), item.getDescription(), 0, 10)
+                .stream().findFirst().get();
+
+        assertEquals(1L, foundItem.getId());
+        assertEquals("itemName", foundItem.getName());
+        assertEquals("itemDesc", foundItem.getDescription());
+        assertEquals(true, foundItem.getAvailable());
+    }
+
+    @Test
+    void shouldCreateComment() {
+        User user = new User(1L, "userName", "email@email.com");
+        Item item = new Item(1L, "itemName", "itemDesc", true, user, null);
+
+        Comment comment = Comment.builder()
+                .id(1L)
+                .item(item)
+                .text("some text")
+                .created(now())
+                .author(user)
+                .build();
+
+        Mockito
+                .when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.of(user));
+
+        Mockito
+                .when(itemRepository.findById(anyLong()))
+                .thenReturn(Optional.of(item));
+
+        Mockito
+                .when(bookingRepository.existsByBooker_IdAndItem_IdAndEndBefore(anyLong(), any(), any()))
+                .thenReturn(true);
+
+        Mockito
+                .when(commentRepository.save(any()))
+                .thenReturn(comment);
+
+        var savedComment = itemService.createComment(user.getId(), item.getId(), CommentMapper.toCommentDto(comment));
+
+        assertEquals(1L, savedComment.getId());
+        assertEquals(comment.getText(), savedComment.getText());
+        assertEquals(user.getName(), savedComment.getAuthorName());
     }
 }

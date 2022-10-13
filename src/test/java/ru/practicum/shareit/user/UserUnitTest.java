@@ -13,6 +13,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,5 +68,22 @@ class UserUnitTest {
         assertEquals(1L, updatedUser.getId());
         assertEquals("updatedName", updatedUser.getName());
         assertEquals("updatedEmail@mail.com", updatedUser.getEmail());
+    }
+
+    @Test
+    void shouldReturnAllUsers() {
+        UserDto dto = new UserDto();
+        dto.setEmail("email@mail.com");
+        dto.setName("userName");
+
+        Mockito
+                .when(userRepository.findAll())
+                .thenReturn(List.of(new User(1L, "userName", "email@mail.com")));
+
+        var foundUser = userService.getAllUsers().stream().findFirst().get();
+
+        assertEquals(1L, foundUser.getId());
+        assertEquals("userName", foundUser.getName());
+        assertEquals("email@mail.com", foundUser.getEmail());
     }
 }
