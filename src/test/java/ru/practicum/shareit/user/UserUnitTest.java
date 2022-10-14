@@ -57,17 +57,17 @@ class UserUnitTest {
 
         Mockito
                 .when(userRepository.findById(ArgumentMatchers.anyLong()))
-                .thenReturn(Optional.of(new User(1L, "userName", "email@mail.com")));
+                .thenReturn(Optional.of(UserMapper.toUser(dto)));
 
         Mockito
                 .when(userRepository.save(ArgumentMatchers.any(User.class)))
-                .thenReturn(new User(1L, "updatedName", "updatedEmail@mail.com"));
+                .thenReturn(UserMapper.toUser(dto));
 
-        UserDto updatedUser = userService.updateUser(1L, new UserDto(1L, "updatedName", "updatedEmail@mail.com"));
+        UserDto updatedUser = userService.updateUser(1L, dto);
 
-        assertEquals(1L, updatedUser.getId());
-        assertEquals("updatedName", updatedUser.getName());
-        assertEquals("updatedEmail@mail.com", updatedUser.getEmail());
+        assertEquals(dto.getId(), updatedUser.getId());
+        assertEquals(dto.getName(), updatedUser.getName());
+        assertEquals(dto.getEmail(), updatedUser.getEmail());
     }
 
     @Test

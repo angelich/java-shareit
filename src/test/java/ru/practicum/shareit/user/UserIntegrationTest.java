@@ -36,9 +36,10 @@ class UserIntegrationTest {
                 .setParameter("email", userDto.getEmail())
                 .getSingleResult();
 
-        assertThat(user.getId(), notNullValue());
-        assertThat(user.getName(), equalTo(userDto.getName()));
-        assertThat(user.getEmail(), equalTo(userDto.getEmail()));
+        UserDto savedUser = UserMapper.toUserDto(user);
+        assertThat(savedUser.getId(), notNullValue());
+        assertThat(savedUser.getName(), equalTo(userDto.getName()));
+        assertThat(savedUser.getEmail(), equalTo(userDto.getEmail()));
     }
 
     @Test
