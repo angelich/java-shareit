@@ -5,7 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -28,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BookingUnitTest {
@@ -60,16 +60,13 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         BookingDto bookingDto = new BookingDto(1L, now().plusMinutes(1L), now().plusDays(1L), item.getId(), booker.getId());
 
-        Mockito
-                .when(userRepository.findById(anyLong()))
+        when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(booker));
 
-        Mockito
-                .when(itemRepository.findById(anyLong()))
+        when(itemRepository.findById(anyLong()))
                 .thenReturn(Optional.of(item));
 
-        Mockito
-                .when(bookingRepository.save(any()))
+        when(bookingRepository.save(any()))
                 .thenReturn(booking);
 
         var savedBooking = bookingService.bookItem(booker.getId(), bookingDto);
@@ -87,12 +84,10 @@ class BookingUnitTest {
         Item item = new Item(1L, "itemName", "itemDesc", true, owner, null);
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
 
-        Mockito
-                .when(bookingRepository.findById(any()))
+        when(bookingRepository.findById(any()))
                 .thenReturn(Optional.of(booking));
 
-        Mockito
-                .when(bookingRepository.save(any()))
+        when(bookingRepository.save(any()))
                 .thenReturn(booking);
 
         var approvedBooking = bookingService.approveBooking(owner.getId(), booking.getId(), true);
@@ -111,8 +106,7 @@ class BookingUnitTest {
         Item item = new Item(1L, "itemName", "itemDesc", true, owner, null);
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
 
-        Mockito
-                .when(bookingRepository.findById(any()))
+        when(bookingRepository.findById(any()))
                 .thenReturn(Optional.of(booking));
 
         var savedBooking = bookingService.getBooking(booker.getId(), booking.getId());
@@ -131,8 +125,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByBooker_IdOrderByStartDesc(any(), any()))
+        when(bookingRepository.findBookingsByBooker_IdOrderByStartDesc(any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getUserBookings(booker.getId(), "ALL", 0, 10);
@@ -153,8 +146,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByBooker_IdAndStartBeforeAndEndAfter(any(), any(), any(), any()))
+        when(bookingRepository.findBookingsByBooker_IdAndStartBeforeAndEndAfter(any(), any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getUserBookings(booker.getId(), "CURRENT", 0, 10);
@@ -175,8 +167,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByBooker_IdAndEndBeforeOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByBooker_IdAndEndBeforeOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getUserBookings(booker.getId(), "PAST", 0, 10);
@@ -197,8 +188,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByBooker_IdAndStartAfterOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByBooker_IdAndStartAfterOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getUserBookings(booker.getId(), "FUTURE", 0, 10);
@@ -219,8 +209,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByBooker_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByBooker_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getUserBookings(booker.getId(), "REJECTED", 0, 10);
@@ -241,8 +230,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByBooker_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByBooker_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getUserBookings(booker.getId(), "WAITING", 0, 10);
@@ -263,8 +251,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByItem_Owner_IdOrderByStartDesc(any(), any()))
+        when(bookingRepository.findBookingsByItem_Owner_IdOrderByStartDesc(any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getOwnerBookings(owner.getId(), "ALL", 0, 10);
@@ -285,8 +272,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByItem_Owner_IdAndStartBeforeAndEndAfter(any(), any(), any(), any()))
+        when(bookingRepository.findBookingsByItem_Owner_IdAndStartBeforeAndEndAfter(any(), any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getOwnerBookings(owner.getId(), "CURRENT", 0, 10);
@@ -307,8 +293,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByItem_Owner_IdAndEndBeforeOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByItem_Owner_IdAndEndBeforeOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getOwnerBookings(owner.getId(), "PAST", 0, 10);
@@ -329,8 +314,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByItem_Owner_IdAndStartAfterOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByItem_Owner_IdAndStartAfterOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getOwnerBookings(owner.getId(), "FUTURE", 0, 10);
@@ -351,8 +335,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByItem_Owner_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByItem_Owner_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getOwnerBookings(owner.getId(), "REJECTED", 0, 10);
@@ -373,8 +356,7 @@ class BookingUnitTest {
         Booking booking = new Booking(1L, item, booker, now().plusMinutes(1L), now().plusDays(1L), BookingStatus.WAITING);
         Page<Booking> page = new PageImpl(List.of(booking));
 
-        Mockito
-                .when(bookingRepository.findBookingsByItem_Owner_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
+        when(bookingRepository.findBookingsByItem_Owner_IdAndStatusIsOrderByStartDesc(any(), any(), any()))
                 .thenReturn(page);
 
         var savedBookings = bookingService.getOwnerBookings(owner.getId(), "WAITING", 0, 10);
