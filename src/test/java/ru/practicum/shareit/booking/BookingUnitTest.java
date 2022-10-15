@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static java.time.LocalDateTime.now;
@@ -367,5 +369,75 @@ class BookingUnitTest {
         assertEquals(booker.getId(), savedBooking.getBooker().getId());
         assertNotNull(savedBooking.getStart());
         assertNotNull(savedBooking.getEnd());
+    }
+
+    @Test
+    void shouldThrowIfIllegalState() {
+        Exception exception = Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> bookingService.getOwnerBookings(1L, "UNSUPPORTED_STATUS", 0, 10)
+        );
+        assertEquals("Unknown state: UNSUPPORTED_STATUS", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowIfUserNotFound() {
+        User owner = new User(1L, "owner", "owner@email.com");
+        User booker = new User(2L, "userName", "booker@email.com");
+        Item item = new Item(1L, "itemName", "itemDesc", true, owner, null);
+        BookingDto bookingDto = new BookingDto(1L, now().plusMinutes(1L), now().plusDays(1L), item.getId(), booker.getId());
+
+        when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        Exception exception = Assertions.assertThrows(
+                NoSuchElementException.class,
+                () -> bookingService.bookItem(1L, bookingDto)
+        );
+        assertEquals("User not exist", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowIfItemNotFound() {
+        User owner = new User(1L, "owner", "owner@email.com");
+        User booker = new User(2L, "userName", "booker@email.com");
+        Item item = new Item(1L, "itemName", "itemDesc", true, owner, null);
+        BookingDto bookingDto = new BookingDto(1L, now().plusMinutes(1L), now().plusDays(1L), item.getId(), booker.getId());
+
+        when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.of(booker));
+
+        when(itemRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        Exception exception = Assertions.assertThrows(
+                NoSuchElementException.class,
+                () -> bookingService.bookItem(1L, bookingDto)
+        );
+        assertEquals("Item not exist", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenBookingNotFound() {
+        when(bookingRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        Exception exception = Assertions.assertThrows(
+                NoSuchElementException.class,
+                () -> bookingService.approveBooking(1L, 1L, true)
+        );
+        assertEquals("Booking not exist", exception.getMessage());
+    }
+
+    @Test
+    void shouldThrowWhenUserNotFoundWhileGetBooking() {
+        when(bookingRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        Exception exception = Assertions.assertThrows(
+                NoSuchElementException.class,
+                () -> bookingService.getBooking(1L, 1L)
+        );
+        assertEquals("Booking not exist", exception.getMessage());
     }
 }

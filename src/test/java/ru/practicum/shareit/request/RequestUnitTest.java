@@ -1,11 +1,11 @@
 package ru.practicum.shareit.request;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -18,12 +18,15 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static java.time.LocalDateTime.now;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RequestUnitTest {
@@ -56,8 +59,7 @@ class RequestUnitTest {
                 .description("some desc")
                 .build();
 
-        Mockito
-                .when(requestRepository.save(any()))
+        when(requestRepository.save(any()))
                 .thenReturn(request);
 
         var savedRequest = requestService.createRequest(requester.getId(), ItemRequestMapper.toItemRequestDto(request));
@@ -78,8 +80,7 @@ class RequestUnitTest {
                 .description("some desc")
                 .build();
 
-        Mockito
-                .when(requestRepository.findAllByRequesterOrderByCreatedDateTimeDesc(any()))
+        when(requestRepository.findAllByRequesterOrderByCreatedDateTimeDesc(any()))
                 .thenReturn(List.of(request));
 
         var savedRequest = requestService.getMyRequests(requester.getId()).stream().findFirst().get();
@@ -100,8 +101,7 @@ class RequestUnitTest {
                 .description("some desc")
                 .build();
 
-        Mockito
-                .when(requestRepository.findAllByRequesterNot(any(), any()))
+        when(requestRepository.findAllByRequesterNot(any(), any()))
                 .thenReturn(new PageImpl<>(List.of(request)));
 
         var savedRequest = requestService.getAllRequests(requester.getId(), 0, 10).stream().findFirst().get();
@@ -122,8 +122,7 @@ class RequestUnitTest {
                 .description("some desc")
                 .build();
 
-        Mockito
-                .when(requestRepository.findById(any()))
+        when(requestRepository.findById(any()))
                 .thenReturn(Optional.ofNullable(request));
 
         var savedRequest = requestService.getOneRequest(requester.getId(), request.getId());
@@ -131,5 +130,18 @@ class RequestUnitTest {
         assertNotNull(savedRequest.getId());
         assertEquals(request.getDescription(), savedRequest.getDescription());
         assertNotNull(request.getCreatedDateTime());
+    }
+
+    @Test
+    void shouldThrowWhenRequestNotFound() {
+
+        when(requestRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        Exception exception = Assertions.assertThrows(
+                NoSuchElementException.class,
+                () -> requestService.getOneRequest(1L, 1L)
+        );
+        assertEquals("Item request id not exist", exception.getMessage());
     }
 }
