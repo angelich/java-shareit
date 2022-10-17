@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.requests.ItemRequest;
 import ru.practicum.shareit.validation.Create;
 
 import javax.validation.constraints.NotBlank;
@@ -31,7 +30,7 @@ public class ExtendedItemDto {
     @NotNull(groups = Create.class, message = "Availability should be provided")
     private Boolean available;
 
-    private ItemRequest request;
+    private Long requestId;
 
     private BookingDto lastBooking;
 

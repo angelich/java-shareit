@@ -17,13 +17,16 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.validation.Create;
 import ru.practicum.shareit.validation.Update;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 
 /**
  * Контроллер вещей
  */
 @RestController
-@RequestMapping("/items")
+@Validated
+@RequestMapping(path = "/items")
 public class ItemController {
     private final ItemService itemService;
 
@@ -50,13 +53,18 @@ public class ItemController {
     }
 
     @GetMapping
-    Collection<ExtendedItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        return itemService.getItemsByOwner(userId);
+    Collection<ExtendedItemDto> getItemsByOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                                @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
+                                                @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
+        return itemService.getItemsByOwner(userId, from, size);
     }
 
     @GetMapping("/search")
-    Collection<ItemDto> findItem(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestParam("text") String text) {
-        return itemService.findItem(userId, text);
+    Collection<ItemDto> findItem(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @RequestParam("text") String text,
+                                 @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
+                                 @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
+        return itemService.findItem(userId, text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")
