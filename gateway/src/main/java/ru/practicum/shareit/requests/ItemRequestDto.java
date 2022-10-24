@@ -1,16 +1,15 @@
 package ru.practicum.shareit.requests;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
-import ru.practicum.shareit.validation.Create;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 
 @Getter
-@Setter
-@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ItemRequestDto {
-    @NotBlank(groups = Create.class, message = "Description should be provided")
+    @NotBlank
     private String description;
 }
