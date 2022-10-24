@@ -164,7 +164,7 @@ class ItemUnitTest {
         when(userRepository.findById(anyLong()))
                 .thenReturn(Optional.of(user));
 
-        when(itemRepository.findAllByOwner(any(), any()))
+        when(itemRepository.findAllByOwnerOrderById(any(), any()))
                 .thenReturn(page);
 
         when(bookingRepository.findTopByItem_IdAndItem_OwnerAndStartAfterOrderByStartAsc(anyLong(), any(), any()))
