@@ -112,7 +112,7 @@ public class ItemServiceImpl implements ItemService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not exist"));
 
-        Page<Item> items = itemRepository.findAllByOwner(user, PageRequest.of(from / size, size));
+        Page<Item> items = itemRepository.findAllByOwnerOrderById(user, PageRequest.of(from / size, size));
 
         LocalDateTime currentTime = now();
         List<ExtendedItemDto> itemDtoList = new ArrayList<>();

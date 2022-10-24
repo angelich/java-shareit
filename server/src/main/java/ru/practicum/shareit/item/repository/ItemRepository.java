@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
-    Page<Item> findAllByOwner(User owner, Pageable pageable);
+    Page<Item> findAllByOwnerOrderById(User owner, Pageable pageable);
 
     @Query("SELECT i FROM Item as i " +
             "WHERE i.available = true " +
