@@ -1,6 +1,7 @@
 package ru.practicum.shareit.requests;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import javax.validation.constraints.PositiveOrZero;
  */
 @RestController
 @Validated
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping(path = "/requests")
 public class ItemGatewayRequestController {
@@ -28,12 +30,14 @@ public class ItemGatewayRequestController {
 
     @PostMapping
     public ResponseEntity<Object> createRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                @Valid @RequestBody ItemRequestDto requestDto) {
+                                                @Valid @RequestBody RequestDto requestDto) {
+        log.info("Creating itemRequest={}, user {}", requestDto, userId);
         return requestClient.createRequest(userId, requestDto);
     }
 
     @GetMapping
     public ResponseEntity<Object> getMyRequests(@RequestHeader("X-Sharer-User-Id") Long userId) {
+        log.info("Get user requests, user={}", userId);
         return requestClient.getMyRequests(userId);
     }
 
@@ -41,12 +45,14 @@ public class ItemGatewayRequestController {
     public ResponseEntity<Object> getAllRequests(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                  @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") int from,
                                                  @Positive @RequestParam(value = "size", defaultValue = "10") int size) {
+        log.info("Get all requests, user={}, from={}, size={}", userId, from, size);
         return requestClient.getAllRequests(userId, from, size);
     }
 
     @GetMapping("/{requestId}")
     public ResponseEntity<Object> getOneRequest(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                 @PathVariable("requestId") Long requestId) {
+        log.info("Get requestId={}, user={}", requestId, userId);
         return requestClient.getOneRequest(userId, requestId);
     }
 }

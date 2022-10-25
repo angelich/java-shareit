@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemRequestDto {
+public class RequestDto {
     @NotBlank
     private String description;
 }

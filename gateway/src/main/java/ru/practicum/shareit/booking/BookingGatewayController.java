@@ -31,7 +31,7 @@ public class BookingGatewayController {
     @PostMapping
     public ResponseEntity<Object> bookItem(@RequestHeader("X-Sharer-User-Id") long userId,
                                            @RequestBody @Valid BookItemRequestDto requestDto) {
-        log.info("Creating booking {}, userId={}", requestDto, userId);
+        log.info("Creating booking={}, userId={}", requestDto, userId);
         return bookingClient.bookItem(userId, requestDto);
     }
 
@@ -39,14 +39,14 @@ public class BookingGatewayController {
     public ResponseEntity<Object> approveBooking(@RequestHeader("X-Sharer-User-Id") long userId,
                                                  @PathVariable Long bookingId,
                                                  @RequestParam("approved") Boolean approved) {
-        log.info("Approve booking {} by user {}, approved={}", bookingId, userId, approved);
+        log.info("Approve booking={} by user={}, approved={}", bookingId, userId, approved);
         return bookingClient.approveBooking(userId, bookingId, approved);
     }
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<Object> getBooking(@RequestHeader("X-Sharer-User-Id") long userId,
                                              @PathVariable Long bookingId) {
-        log.info("Get booking {}, userId={}", bookingId, userId);
+        log.info("Get booking={}, userId={}", bookingId, userId);
         return bookingClient.getBooking(userId, bookingId);
     }
 
@@ -57,7 +57,7 @@ public class BookingGatewayController {
                                               @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         BookingState state = BookingState.from(stateParam)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
-        log.info("Get booking with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
+        log.info("Get booking with state={}, userId={}, from={}, size={}", stateParam, userId, from, size);
         return bookingClient.getBookings(userId, state, from, size);
     }
 
@@ -68,7 +68,7 @@ public class BookingGatewayController {
                                                    @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         BookingState state = BookingState.from(stateParam)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
-        log.info("Get booking by owner with state {}, userId={}, from={}, size={}", stateParam, userId, from, size);
+        log.info("Get booking by owner with state={}, userId={}, from={}, size={}", stateParam, userId, from, size);
         return bookingClient.getOwnerBookings(userId, state, from, size);
     }
 }
